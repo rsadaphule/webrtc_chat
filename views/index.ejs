@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" >
+    <head>
+            <title>Introduction to webrtc</title>
+            <link rel="stylesheet" type="text/css" href="styles.css">
+    </head>
+    <body>
+            <div>
+                Video : <select id="camera">  </select>
+            </div>
+            <p><button id="getProfilePic" type="button" autofocus="true">Create Profile Picture</button></p>
+            <canvas id="profileCanvas" style="display: none;"></canvas>
+            <div>
+                <img id="profilePictureOutput" />
+            </div>
+
+
+            <video id="videoElement" autoplay> </video>
+
+
+
+            <script type="text/javascript">
+            var width = 240;
+            var height = width / (4/3);
+            var IsStreaming = false; 
+
+            var videoSelect = document.querySelector("#camera");
+            var myVideo = document.querySelector('#videoElement');
+            var profileCanvas = document.querySelector("#profileCanvas");
+            var profilePicOutputImage = document.querySelector("#profilePictureOutput");
+            var takePhotoButton = document.querySelector("#getProfilePic");
+               
+            takePhotoButton.addEventListener("click", function(event) {
+                takeProfilePicture()
+                event.preventDefault();
+            
+            
+            }, false);
+
+
+            myVideo.addEventListener("canPlay", function(event) {
+                console.log("inside can play")
+                if(!isStreaming)
+                {
+                    height = myVideo.videoHeight;
+                    if (isNaN(height)) {
+                         height = width / (4/3);
+                    }
+                    console.log("about to stream")
+                    myVideo.setAttribute("height", height);
+                    myVideo.setAttributes("width", width);
+                    profileCanvas.setAttribute("height", height);
+                    profileCanvas.setAttribute("width", width);
+                    isStreaming = true;
+                    
+
+                }
+
+
+            }, false);
+
+            function takeProfilePicture()
+            {
+                console.log("inside takeProfilePicture")
+                var context = profileCanvas.getContext("2d");
+                if (width && height) {
+                    profileCanvas.width = width ;
+                    profileCanvas.height = height ;
+                    console.log("just before drawing  image on canvas")
+                    context.drawImage(myVideo, 0, 0, width, height);
+                    var data = profileCanvas.toDataURL('image/png');
+                    profilePicOutputImage.setAttribute("src", data);
+               
+                }
+
+
+
+            }
+
+
+
+            function startStream()
+            {
+
+                        var videoSource = videoSelect.value;
+                     
+                        navigator.mediaDevices.getUserMedia(
+                                                            {
+                                                                video: {
+                                                                    mandatory: {
+                                                                        maxWidth: 240,
+                                                                        maxheight: 240,
+                                                                        minHeight: 240,
+                                                                        maxWidth: 240
+                                                                    },
+                                                                    optional:[
+                                                                        {
+                                                                            sourceId: videoSource
+                                                                        }
+                                                                    ]
+                                                                }, 
+                                                                audio: false
+                                                            })
+                        .then(mediaStream => {
+                                myVideo = document.querySelector('video');
+                                myVideo.srcObject = mediaStream;
+                                //myVideo.className = "grayscale_filter";
+                                myVideo.play();
+
+                        })
+                        .catch(error => {
+                        console.log(error);
+                        });
+            }
+
+            
+           
+            navigator.mediaDevices.enumerateDevices()
+            .then(function (devices) {
+                devices.forEach(function (device) {
+                    var option = document.createElement('option');
+                    option.value = device.deviceId;
+                    
+                    //console.log(device.kind);
+                    
+                    if (device.kind === 'videoinput') {
+                        option.text = device.label || 'camera' + (videoSelect.length + 1);
+                        //console.log("inside if")
+                        console.log(option);
+                        videoSelect.appendChild(option);
+                    }
+                    /*
+                    else if (device.kind == 'audioinput') {
+                        option.text = device.label || 'mic' + (audioSelect.length + 1);
+                        audioSelect.appendChild(option);
+                    }
+                    */
+                });
+            })
+        .catch(function (err) {
+            console.log(err.name + ": " + err.message);
+        });
+            
+            videoSelect.onchange = startStream;
+
+
+            function getCameras(sourceInfos)
+            {
+                for (var i = 0; i < sourceInfos.length; ++i)
+                {
+                    var sourceInfo = sourceInfos[i];
+                    var option = document.createElement("option");;
+                    option.value = sourceInfo.id;
+                    if (sourceInfo.kind == "video") {
+                        option.text = sourceInfo.label || 'camera ' + (videoSelect.length +1 );
+                        videoSelect.appendChild(option);
+
+                    }
+                }
+            }
+
+            startStream();
+
+            
+            
+            
+            </script>
+
+    </body>
+
+</html>

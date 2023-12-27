@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" >
+    <head>
+            <title>webrtc chat</title>
+            <link rel="stylesheet" type="text/css" href="styles.css">
+            <script src="/socket.io/socket.io.js"></script>
+    </head>
+    <body>
+           
+            <div>
+                <label>Your Name</label><input id="myName" type="text" />
+                <label>Message</label><input id="myMessage" type="text" />
+                <input type="submit" id="sendMessage" />
+                <div id="chatArea">Message Output: <br/></div>
+
+            </div>
+
+
+            <script type="text/javascript">
+            var socket = io();
+            var myName = document.querySelector("#myName");
+            var myMessage = document.querySelector("#myMessage");
+            var sendMessage = document.querySelector("#sendMessage");
+            var chatArea = document.querySelector("#chatArea");
+            var ROOM = 'chat'
+            
+            sendMessage.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log("inside submit event");
+            console.log(myMessage.value);
+            if (myMessage.value) {
+                socket.emit('chat message', {msg: myMessage.value, user:myName.value || "Anonymous"});
+                myMessage.value = '';
+                }
+            });    
+        
+            
+            socket.on('chat message', function(msg) {
+                console.log("inside socket chat message");
+                displayMessage(msg)
+            });
+
+            function displayMessage(message){
+                if (chatArea.innerHTML != null)
+                {
+                    chatArea.innerHTML = chatArea.innerHTML + "<br/>" + `${message.user}: ${message.msg}`;
+                }
+                else
+                {
+                    chatArea.innerHTML =  "<br/>" + `${message.user}: ${message.mgs}`;
+
+                }
+            }
+
+
+
+            
+            
+            
+            </script>
+
+    </body>
+
+</html>
